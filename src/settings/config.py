@@ -12,7 +12,9 @@ class Config:
         'animations': True,
         'large_board': True,
         'puzzle_min_rating': 1000,
-        'puzzle_max_rating': 2200
+        'puzzle_max_rating': 2200,
+        'coach_style': 'normal',
+        'show_explanations': True
     }
     
     CONFIG_FILE = 'settings.json'

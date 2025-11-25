@@ -2,6 +2,7 @@
 
 from ui.screens import PlayScreen, PuzzleScreen, SettingsScreen
 from ui.analysis_screen import AnalysisScreen
+from ui.tutor_screen import TutorScreen
 from puzzles.endless_mode import EndlessMode
 
 class MainMenu:
@@ -28,8 +29,9 @@ class MainMenu:
         print("2. Puzzle Mode - Solve single puzzle")
         print("3. Endless Puzzles - Rapid-fire stream")
         print("4. Analysis Mode - Play with engine 🤖")
-        print("5. Settings")
-        print("6. Quit")
+        print("5. Tutor Mode - Learn with AI coach 🧙")
+        print("6. Settings")
+        print("7. Quit")
         print("\n" + "="*40)
     
     def _handle_choice(self, choice):
@@ -47,9 +49,12 @@ class MainMenu:
             screen = AnalysisScreen(self.config)
             screen.run()
         elif choice == '5':
-            screen = SettingsScreen(self.config)
+            screen = TutorScreen(self.config)
             screen.run()
         elif choice == '6':
+            screen = SettingsScreen(self.config)
+            screen.run()
+        elif choice == '7':
             self.running = False
             print("\nThanks for playing! 👻\n")
         else:

@@ -172,7 +172,9 @@ class SettingsScreen:
             print(f"2. Unicode pieces: {self.config.get('use_unicode', True)}")
             print(f"3. Large board: {self.config.get('large_board', True)}")
             print(f"4. Animations: {self.config.get('animations', True)}")
-            print("5. Back to menu")
+            print(f"5. Coach style: {self.config.get('coach_style', 'normal')}")
+            print(f"6. Show explanations: {self.config.get('show_explanations', True)}")
+            print("7. Back to menu")
             
             choice = input("\nSelect option: ").strip()
             
@@ -188,6 +190,11 @@ class SettingsScreen:
                 self.config.toggle('animations')
                 self.config.save()
             elif choice == '5':
+                self._change_coach_style()
+            elif choice == '6':
+                self.config.toggle('show_explanations')
+                self.config.save()
+            elif choice == '7':
                 break
     
     def _change_theme(self):
@@ -201,5 +208,25 @@ class SettingsScreen:
             self.config.set('theme', 'default')
         elif choice == '2':
             self.config.set('theme', 'spooky')
+        
+        self.config.save()
+    
+    def _change_coach_style(self):
+        """Change coaching style"""
+        print("\nCoaching styles:")
+        print("1. normal - Friendly and accessible")
+        print("2. beginner - Simple explanations")
+        print("3. advanced - Detailed analysis")
+        print("4. spooky 👻 - Ghostly coaching")
+        
+        choice = input("Select style: ").strip()
+        if choice == '1':
+            self.config.set('coach_style', 'normal')
+        elif choice == '2':
+            self.config.set('coach_style', 'beginner')
+        elif choice == '3':
+            self.config.set('coach_style', 'advanced')
+        elif choice == '4':
+            self.config.set('coach_style', 'spooky')
         
         self.config.save()
