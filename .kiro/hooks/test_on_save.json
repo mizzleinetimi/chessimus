@@ -1,0 +1,13 @@
+{
+  "name": "Run Tests on Save",
+  "description": "Automatically run tests when Python files are saved",
+  "trigger": {
+    "type": "onFileSave",
+    "filePattern": "**/*.py"
+  },
+  "action": {
+    "type": "command",
+    "command": "python -m pytest tests/ -v"
+  },
+  "enabled": false
+}

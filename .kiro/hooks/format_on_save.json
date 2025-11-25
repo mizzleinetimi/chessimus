@@ -1,0 +1,13 @@
+{
+  "name": "Format on Save",
+  "description": "Auto-format Python files with black",
+  "trigger": {
+    "type": "onFileSave",
+    "filePattern": "**/*.py"
+  },
+  "action": {
+    "type": "command",
+    "command": "black {file}"
+  },
+  "enabled": false
+}
