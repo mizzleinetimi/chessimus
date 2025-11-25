@@ -58,10 +58,10 @@ print(f"🧙 Coach says: {explanation}")
 print("\n4️⃣  Testing move explanation (mistake)...")
 board_before = board.copy()
 eval_before = stockfish.get_evaluation(board_before)
-board.push_san('Qh5')  # Dubious move
-analysis = stockfish.analyze_move(board_before, 'Qh5')
-explanation = coach.explain_move(board_before, 'Qh5', analysis, eval_before)
-print(f"\nMove: Qh5 ({analysis['classification']})")
+board.push_san('Bc4')  # Developing move
+analysis = stockfish.analyze_move(board_before, 'Bc4')
+explanation = coach.explain_move(board_before, 'Bc4', analysis, eval_before)
+print(f"\nMove: Bc4 ({analysis['classification']})")
 print(f"🧙 Coach says: {explanation}")
 
 # Test tactical explanation
