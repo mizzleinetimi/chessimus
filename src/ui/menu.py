@@ -1,6 +1,7 @@
 """Main menu and navigation"""
 
 from ui.screens import PlayScreen, PuzzleScreen, SettingsScreen
+from ui.analysis_screen import AnalysisScreen
 from puzzles.endless_mode import EndlessMode
 
 class MainMenu:
@@ -26,8 +27,9 @@ class MainMenu:
         print("\n1. Play Mode - Free play")
         print("2. Puzzle Mode - Solve single puzzle")
         print("3. Endless Puzzles - Rapid-fire stream")
-        print("4. Settings")
-        print("5. Quit")
+        print("4. Analysis Mode - Play with engine 🤖")
+        print("5. Settings")
+        print("6. Quit")
         print("\n" + "="*40)
     
     def _handle_choice(self, choice):
@@ -42,9 +44,12 @@ class MainMenu:
             mode = EndlessMode(self.config)
             mode.run()
         elif choice == '4':
-            screen = SettingsScreen(self.config)
+            screen = AnalysisScreen(self.config)
             screen.run()
         elif choice == '5':
+            screen = SettingsScreen(self.config)
+            screen.run()
+        elif choice == '6':
             self.running = False
             print("\nThanks for playing! 👻\n")
         else:
