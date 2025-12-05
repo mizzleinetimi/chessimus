@@ -46,9 +46,10 @@ class StockfishEngine:
             return None
         
         try:
-            result = self.engine.play(board, chess.engine.Limit(depth=self.depth))
+            result = self.engine.play(board, chess.engine.Limit(depth=self.depth, time=5.0))
             return board.san(result.move)
-        except:
+        except Exception as e:
+            print(f"Stockfish error: {e}")
             return None
     
     def get_evaluation(self, board: chess.Board) -> Dict:
@@ -72,7 +73,7 @@ class StockfishEngine:
             }
         
         try:
-            info = self.engine.analyse(board, chess.engine.Limit(depth=self.depth))
+            info = self.engine.analyse(board, chess.engine.Limit(depth=self.depth, time=3.0))
             score = info['score'].relative
             
             # Extract score
@@ -190,7 +191,7 @@ class StockfishEngine:
             return []
         
         try:
-            info = self.engine.analyse(board, chess.engine.Limit(depth=self.depth), multipv=num_moves)
+            info = self.engine.analyse(board, chess.engine.Limit(depth=self.depth, time=3.0), multipv=num_moves)
             
             moves = []
             for pv_info in info:

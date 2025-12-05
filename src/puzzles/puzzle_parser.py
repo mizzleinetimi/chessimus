@@ -28,15 +28,50 @@ class PuzzleParser:
         
         # Parse PGN and get position at initialPly
         board = chess.Board()
+        last_move_uci = None
+        last_move_san = None
+        
         if pgn_str:
-            moves = pgn_str.split()
-            for i, move_san in enumerate(moves):
-                if i >= initial_ply:
-                    break
-                try:
-                    board.push_san(move_san)
-                except:
-                    pass
+            try:
+                # Use chess.pgn to parse properly (handles move numbers, comments, etc.)
+                pgn_io = StringIO(pgn_str)
+                game = chess.pgn.read_game(pgn_io)
+                
+                # Iterate through moves up to initialPly (inclusive)
+                for i, move in enumerate(game.mainline_moves()):
+                    if i > initial_ply:
+                        break
+                    
+                    board.push(move)
+                    if i == initial_ply:
+                        last_move_uci = move.uci()
+                        board.pop()
+                        last_move_san = board.san(move)
+                        board.push(move)
+            except Exception as e:
+                print(f"Error parsing PGN: {e}")
+                # Fallback to simple splitting if pgn parsing fails
+                board = chess.Board()
+                moves = pgn_str.split()
+                moves_pushed = 0
+                
+                for move_san in moves:
+                    if moves_pushed > initial_ply:
+                        break
+                    try:
+                        # Skip move numbers (e.g. "1.")
+                        if move_san.endswith('.'):
+                            continue
+                            
+                        move = board.push_san(move_san)
+                        
+                        if moves_pushed == initial_ply:
+                            last_move_uci = move.uci()
+                            last_move_san = move_san
+                            
+                        moves_pushed += 1
+                    except:
+                        pass
         
         return {
             'id': puzzle.get('id', 'unknown'),
@@ -44,7 +79,9 @@ class PuzzleParser:
             'moves': puzzle.get('solution', []),
             'rating': puzzle.get('rating', 1500),
             'themes': puzzle.get('themes', []),
-            'pgn': pgn_str
+            'pgn': pgn_str,
+            'last_move_uci': last_move_uci,
+            'last_move_san': last_move_san
         }
     
     @staticmethod

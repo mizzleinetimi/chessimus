@@ -18,6 +18,7 @@ class PlayScreen:
             use_unicode=config.get('use_unicode', True),
             large_board=config.get('large_board', True)
         )
+        self.last_move = None
     
     def run(self):
         """Run play mode"""
@@ -27,7 +28,15 @@ class PlayScreen:
         
         while not self.engine.is_game_over():
             self.renderer.clear_screen()
-            print(self.renderer.render(self.engine.get_board()))
+            
+            # Highlight last move
+            highlight_squares = []
+            from_square = None
+            if self.last_move:
+                from_square = self.last_move[0]
+                highlight_squares = [self.last_move[1]]
+            
+            print(self.renderer.render(self.engine.get_board(), highlight_squares, from_square))
             
             if self.engine.is_check():
                 print("⚠️  Check!")
@@ -51,6 +60,14 @@ class PlayScreen:
                     input("\nPress Enter to continue...")
             elif input_type == 'move':
                 # Try to make the move
+                board_before = self.engine.get_board().copy()
+                try:
+                    move_obj = board_before.parse_san(value)
+                    # Store move info for highlighting BEFORE making the move
+                    self.last_move = (move_obj.from_square, move_obj.to_square, value)
+                except:
+                    pass
+                
                 if self.engine.make_move(value):
                     print("✅ Move made")
                 else:
@@ -91,19 +108,49 @@ class PuzzleScreen:
             puzzle_data = PuzzleParser.parse(puzzle_json)
             engine = PuzzleEngine(puzzle_data)
             
+            # Get initial move for highlighting
+            board = engine.get_board()
+            last_move = None
+            
+            # Use the last move from parser if available
+            if puzzle_data.get('last_move_uci'):
+                try:
+                    uci = puzzle_data['last_move_uci']
+                    move = chess.Move.from_uci(uci)
+                    last_move = (move.from_square, move.to_square, puzzle_data.get('last_move_san', uci))
+                except:
+                    pass
+            elif len(board.move_stack) > 0:
+                initial_move = board.move_stack[-1]
+                last_move = (initial_move.from_square, initial_move.to_square, board.san(initial_move))
+            
             print(f"Puzzle #{puzzle_data['id']}")
             print(f"Rating: {puzzle_data['rating']}")
             print(f"Themes: {', '.join(puzzle_data['themes'])}\n")
             
+            feedback_message = ""
+            
             while not engine.is_complete():
                 self.renderer.clear_screen()
-                print(self.renderer.render(engine.get_board()))
+                
+                # Highlight last move
+                highlight_squares = []
+                from_square = None
+                if last_move and isinstance(last_move, tuple) and len(last_move) == 3:
+                    from_square = last_move[0]
+                    highlight_squares = [last_move[1]]
+                
+                print(self.renderer.render(engine.get_board(), highlight_squares, from_square))
                 
                 # Show whose turn it is
                 turn = engine.get_turn_info()
                 print(f"🎯 {turn} to play and win!")
                 
-                user_input = input("\nYour move (or 'quit', 'hint'): ").strip()
+                if feedback_message:
+                    print(f"\n{feedback_message}")
+                    feedback_message = ""  # Clear after showing
+                
+                user_input = input("\nYour move (or 'quit', 'hint', 'solution'): ").strip()
                 input_type, value = InputParser.parse(user_input)
                 
                 if input_type == 'command':
@@ -113,15 +160,50 @@ class PuzzleScreen:
                         hint = engine.get_hint()
                         print(f"💡 Hint: {hint}")
                         input("Press Enter to continue...")
+                    elif value == 'solution':
+                        solution = engine.get_solution_str()
+                        print(f"🔑 Solution: {solution}")
+                        input("Press Enter to continue...")
                 elif input_type == 'move':
-                    result, move = engine.check_move(value)
+                    # Get move object before checking
+                    board_copy = engine.get_board().copy()
+                    try:
+                        move_obj = board_copy.parse_san(value)
+                        from_sq = move_obj.from_square
+                        to_sq = move_obj.to_square
+                        last_move = (from_sq, to_sq, value)
+                    except:
+                        last_move = None
+                    
+                    result, move, opponent_san = engine.check_move(value)
                     
                     if result == 'correct':
+                        # Get opponent's move that was just made
+                        board_after = engine.get_board()
+                        if opponent_san:
+                            opponent_move_obj = board_after.move_stack[-1]
+                            last_move = (opponent_move_obj.from_square, opponent_move_obj.to_square, opponent_san)
+                        
+                        self.renderer.clear_screen()
+                        if last_move:
+                            print(self.renderer.render(engine.get_board(), [last_move[1]], last_move[0]))
+                        else:
+                            print(self.renderer.render(engine.get_board()))
                         print("✅ Correct! Continue...")
                         input("Press Enter...")
                     elif result == 'complete':
                         self.renderer.clear_screen()
-                        print(self.renderer.render(engine.get_board()))
+                        if opponent_san:
+                            # If there was a final opponent move (unlikely for complete, but possible if puzzle ends on opponent move)
+                            # Actually check_move returns opponent_san if it made a move.
+                            board_after = engine.get_board()
+                            opponent_move_obj = board_after.move_stack[-1]
+                            last_move = (opponent_move_obj.from_square, opponent_move_obj.to_square, opponent_san)
+                        
+                        if last_move:
+                            print(self.renderer.render(engine.get_board(), [last_move[1]], last_move[0]))
+                        else:
+                            print(self.renderer.render(engine.get_board()))
                         print("\n🎉 Puzzle solved!")
                         input("\nPress Enter to return to menu...")
                         break
@@ -136,8 +218,8 @@ class PuzzleScreen:
                             print(f"📍 Moves from {value}: {', '.join(moves)}")
                             input("Press Enter to continue...")
                         else:
-                            print("❌ Incorrect. Try again!")
-                            input("Press Enter to continue...")
+                            feedback_message = "❌ Incorrect. Try again!"
+                            last_move = None  # Clear highlight on wrong move
                     elif result == 'error':
                         # Check if it's a square query
                         moves, dest_squares = engine.get_moves_from_square(value)
@@ -149,8 +231,7 @@ class PuzzleScreen:
                             print(f"📍 Moves from {value}: {', '.join(moves)}")
                             input("Press Enter to continue...")
                         else:
-                            print(f"❌ Invalid move: {move}")
-                            input("Press Enter to continue...")
+                            feedback_message = f"❌ Invalid move: {move}"
         
         except Exception as e:
             print(f"❌ Error: {e}")
@@ -172,9 +253,10 @@ class SettingsScreen:
             print(f"2. Unicode pieces: {self.config.get('use_unicode', True)}")
             print(f"3. Large board: {self.config.get('large_board', True)}")
             print(f"4. Animations: {self.config.get('animations', True)}")
-            print(f"5. Coach style: {self.config.get('coach_style', 'normal')}")
-            print(f"6. Show explanations: {self.config.get('show_explanations', True)}")
-            print("7. Back to menu")
+            print(f"5. Highlight moves: {self.config.get('highlight_moves', True)}")
+            print(f"6. Coach style: {self.config.get('coach_style', 'normal')}")
+            print(f"7. Show explanations: {self.config.get('show_explanations', True)}")
+            print("8. Back to menu")
             
             choice = input("\nSelect option: ").strip()
             
@@ -190,11 +272,14 @@ class SettingsScreen:
                 self.config.toggle('animations')
                 self.config.save()
             elif choice == '5':
-                self._change_coach_style()
+                self.config.toggle('highlight_moves')
+                self.config.save()
             elif choice == '6':
+                self._change_coach_style()
+            elif choice == '7':
                 self.config.toggle('show_explanations')
                 self.config.save()
-            elif choice == '7':
+            elif choice == '8':
                 break
     
     def _change_theme(self):

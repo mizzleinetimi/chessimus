@@ -32,25 +32,31 @@ class PuzzleEngine:
             expected_uci = self.solution_moves[self.current_move_index]
             expected_move = chess.Move.from_uci(expected_uci)
             
+            # Check if move is legal first
+            if user_move not in self.board.legal_moves:
+                return ('error', 'Illegal move')
+            
             if user_move == expected_move:
                 self.board.push(user_move)
                 self.current_move_index += 1
                 
                 # Make opponent's response if available
+                opponent_san = None
                 if self.current_move_index < len(self.solution_moves):
                     opponent_uci = self.solution_moves[self.current_move_index]
                     opponent_move = chess.Move.from_uci(opponent_uci)
+                    opponent_san = self.board.san(opponent_move)
                     self.board.push(opponent_move)
                     self.current_move_index += 1
                 
                 # Check if puzzle complete
                 if self.current_move_index >= len(self.solution_moves):
                     self.completed = True
-                    return ('complete', user_move)
+                    return ('complete', user_move, opponent_san)
                 
-                return ('correct', user_move)
+                return ('correct', user_move, opponent_san)
             else:
-                return ('incorrect', None)
+                return ('incorrect', None, None)
         
         except Exception as e:
             return ('error', str(e))
@@ -70,6 +76,22 @@ class PuzzleEngine:
             move = chess.Move.from_uci(move_uci)
             return self.board.san(move)
         return None
+    
+    def get_solution_str(self):
+        """Get remaining solution moves as a string"""
+        if self.completed:
+            return "Puzzle already solved!"
+            
+        board_copy = self.board.copy()
+        moves = []
+        
+        for i in range(self.current_move_index, len(self.solution_moves)):
+            uci = self.solution_moves[i]
+            move = chess.Move.from_uci(uci)
+            moves.append(board_copy.san(move))
+            board_copy.push(move)
+            
+        return " ".join(moves)
     
     def get_turn_info(self):
         """Get whose turn it is"""

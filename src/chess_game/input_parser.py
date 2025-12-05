@@ -3,7 +3,7 @@
 class InputParser:
     """Parse user input for chess commands and moves"""
     
-    COMMANDS = ['quit', 'exit', 'undo', 'moves', 'help', 'menu', 'hint']
+    COMMANDS = ['quit', 'exit', 'undo', 'moves', 'help', 'menu', 'hint', 'solution']
     
     @staticmethod
     def parse(user_input):

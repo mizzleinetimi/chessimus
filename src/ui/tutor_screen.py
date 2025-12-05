@@ -48,12 +48,22 @@ class TutorScreen:
                 if self.engine.is_check():
                     print("⚠️  Check!")
                 
-                user_input = input("\nYour move: ").strip()
+                print("\n💡 Commands: explain, hint, best, undo, help, quit")
+                user_input = input("Your move: ").strip()
                 input_type, value = InputParser.parse(user_input)
                 
                 if input_type == 'command':
                     if value in ['quit', 'exit', 'menu']:
                         break
+                    elif value == 'help':
+                        print("\n📋 Available Commands:")
+                        print("   explain - Get AI explanation of current position")
+                        print("   hint    - Show the best move")
+                        print("   best    - Show top 3 moves with evaluations")
+                        print("   undo    - Take back your last move")
+                        print("   quit    - Return to main menu")
+                        print("\n📍 Square Query: Type a square (e.g., 'e4') to see possible moves")
+                        input("\nPress Enter to continue...")
                     elif value == 'undo':
                         if self.engine.undo_move():
                             print("↩️  Move undone")

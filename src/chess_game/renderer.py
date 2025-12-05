@@ -5,8 +5,9 @@ from colorama import Fore, Back, Style, init
 
 init(autoreset=True)
 
-# Highlight color for destination squares
-HIGHLIGHT_COLOR = Back.GREEN + Style.BRIGHT
+# Highlight colors for last moves
+HIGHLIGHT_FROM = Back.YELLOW + Style.BRIGHT  # From square (where piece came from)
+HIGHLIGHT_TO = Back.RED + Style.BRIGHT  # To square (where piece moved to)
 
 class BoardRenderer:
     """Render chess board in terminal"""
@@ -42,16 +43,23 @@ class BoardRenderer:
         else:
             return self.ASCII_PIECES
     
-    def render(self, board, highlighted_squares=None):
-        """Render board to terminal"""
+    def render(self, board, highlighted_squares=None, from_square=None):
+        """Render board to terminal
+        
+        Args:
+            board: chess.Board object
+            highlighted_squares: list of squares to highlight (to squares)
+            from_square: single square to highlight as origin (from square)
+        """
         if self.large_board:
-            return self._render_large(board, highlighted_squares)
+            return self._render_large(board, highlighted_squares, from_square)
         else:
-            return self._render_compact(board, highlighted_squares)
+            return self._render_compact(board, highlighted_squares, from_square)
     
-    def _render_large(self, board, highlighted_squares=None):
+    def _render_large(self, board, highlighted_squares=None, from_square=None):
         """Render large board with extra spacing"""
         highlighted_squares = highlighted_squares or []
+        from_squares = [from_square] if from_square is not None else []
         
         output = []
         output.append("\n    ╔════════════════════════════════════════════╗")
@@ -62,10 +70,13 @@ class BoardRenderer:
             for file in range(8):
                 square = rank * 8 + file
                 is_light = (rank + file) % 2 == 1
-                is_highlighted = square in highlighted_squares
+                is_from = square in from_squares
+                is_to = square in highlighted_squares
                 
-                if is_highlighted:
-                    bg = HIGHLIGHT_COLOR
+                if is_from:
+                    bg = HIGHLIGHT_FROM
+                elif is_to:
+                    bg = HIGHLIGHT_TO
                 elif is_light:
                     bg = Back.WHITE if self.theme != 'spooky' else Back.MAGENTA
                 else:
@@ -83,22 +94,26 @@ class BoardRenderer:
                 
                 # Determine square color
                 is_light = (rank + file) % 2 == 1
-                is_highlighted = square in highlighted_squares
+                is_from = square in from_squares
+                is_to = square in highlighted_squares
                 
                 # Apply colors
-                if is_highlighted:
-                    bg = HIGHLIGHT_COLOR
+                if is_from:
+                    bg = HIGHLIGHT_FROM
+                elif is_to:
+                    bg = HIGHLIGHT_TO
                 elif is_light:
                     bg = Back.WHITE if self.theme != 'spooky' else Back.MAGENTA
                 else:
                     bg = Back.BLUE if self.theme != 'spooky' else Back.BLACK
                 
-                # Get piece symbol
+                # Get piece symbol with consistent colors per side
                 if piece:
                     symbol = self.pieces.get(piece.symbol(), piece.symbol())
-                    # White pieces: bright white + bold, Black pieces: bright yellow + bold
+                    # White pieces: bright cyan (always)
+                    # Black pieces: bright yellow (always)
                     if piece.color:  # White pieces
-                        fg = Fore.WHITE + Style.BRIGHT
+                        fg = Fore.CYAN + Style.BRIGHT
                     else:  # Black pieces
                         fg = Fore.YELLOW + Style.BRIGHT
                 else:
@@ -115,10 +130,13 @@ class BoardRenderer:
             for file in range(8):
                 square = rank * 8 + file
                 is_light = (rank + file) % 2 == 1
-                is_highlighted = square in highlighted_squares
+                is_from = square in from_squares
+                is_to = square in highlighted_squares
                 
-                if is_highlighted:
-                    bg = HIGHLIGHT_COLOR
+                if is_from:
+                    bg = HIGHLIGHT_FROM
+                elif is_to:
+                    bg = HIGHLIGHT_TO
                 elif is_light:
                     bg = Back.WHITE if self.theme != 'spooky' else Back.MAGENTA
                 else:
@@ -133,9 +151,10 @@ class BoardRenderer:
         
         return '\n'.join(output)
     
-    def _render_compact(self, board, highlighted_squares=None):
+    def _render_compact(self, board, highlighted_squares=None, from_square=None):
         """Render compact board (original size)"""
         highlighted_squares = highlighted_squares or []
+        from_squares = [from_square] if from_square is not None else []
         
         output = []
         output.append("\n  ┌─────────────────┐")
@@ -148,22 +167,26 @@ class BoardRenderer:
                 
                 # Determine square color
                 is_light = (rank + file) % 2 == 1
-                is_highlighted = square in highlighted_squares
+                is_from = square in from_squares
+                is_to = square in highlighted_squares
                 
                 # Apply colors
-                if is_highlighted:
-                    bg = HIGHLIGHT_COLOR
+                if is_from:
+                    bg = HIGHLIGHT_FROM
+                elif is_to:
+                    bg = HIGHLIGHT_TO
                 elif is_light:
                     bg = Back.WHITE if self.theme != 'spooky' else Back.MAGENTA
                 else:
                     bg = Back.BLUE if self.theme != 'spooky' else Back.BLACK
                 
-                # Get piece symbol
+                # Get piece symbol with consistent colors per side
                 if piece:
                     symbol = self.pieces.get(piece.symbol(), piece.symbol())
-                    # White pieces: bright white + bold, Black pieces: bright yellow + bold
+                    # White pieces: bright cyan (always)
+                    # Black pieces: bright yellow (always)
                     if piece.color:  # White pieces
-                        fg = Fore.WHITE + Style.BRIGHT
+                        fg = Fore.CYAN + Style.BRIGHT
                     else:  # Black pieces
                         fg = Fore.YELLOW + Style.BRIGHT
                 else:

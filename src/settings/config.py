@@ -11,6 +11,7 @@ class Config:
         'use_unicode': True,
         'animations': True,
         'large_board': True,
+        'highlight_moves': True,
         'puzzle_min_rating': 1000,
         'puzzle_max_rating': 2200,
         'coach_style': 'normal',
