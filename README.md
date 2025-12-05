@@ -48,19 +48,33 @@ This project is a true Frankenstein creation, stitching together:
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/terminal-chess-puzzles.git
-cd terminal-chess-puzzles
+git clone https://github.com/mizzleinetimi/chessimus.git
+cd chessimus
 
 # Install dependencies
 python3 -m pip install -r requirements.txt
-
-# Optional: Install Stockfish for analysis features
-brew install stockfish  # macOS
-# or: apt install stockfish  # Linux
-
-# Optional: Set OpenAI API key for AI coaching
-export OPENAI_API_KEY="your-key-here"
 ```
+
+### Optional Dependencies
+
+**Stockfish** (for Analysis Mode, Tutor Mode, VS AI):
+```bash
+# macOS
+brew install stockfish
+
+# Linux
+sudo apt install stockfish
+
+# Windows - download from https://stockfishchess.org/download/
+```
+
+**OpenAI API Key** (for AI coaching and dynamic trash talk):
+```bash
+export OPENAI_API_KEY="your-key-here"
+# Or edit set_api_key.sh and run: source set_api_key.sh
+```
+
+> Note: The app works without these - you'll just get static responses instead of AI-generated ones.
 
 ## 🎮 Usage
 
@@ -208,9 +222,18 @@ This single method combines:
 └── README.md
 ```
 
+## 🎥 Demo Video
+
+[Watch the 3-minute demo on YouTube](YOUR_VIDEO_LINK_HERE)
+
 ## 📄 License
 
 MIT License - See [LICENSE](LICENSE) file
+
+## 🔗 Links
+
+- **Repository**: https://github.com/mizzleinetimi/chessimus
+- **Category**: Frankenstein 🧟
 
 ## 🎃 Happy Kiroween!
 
